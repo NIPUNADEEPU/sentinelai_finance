@@ -52,7 +52,7 @@ if st.button("Run Security Orchestration Analysis", type="primary"):
                     # Part B: Stable, simplified payload parameters (Increased token pool)
                     payload = {
                         "parameters": {
-                            "max_new_tokens": 1000,  # <-- FIXED: Bumped up from 300 to prevent cut-offs!
+                            "max_new_tokens": 1000,  # Vaulted payload execution token pool
                             "decoding_method": "greedy",
                             "prompt_variables": {
                                 "user_query": user_input
@@ -72,10 +72,23 @@ if st.button("Run Security Orchestration Analysis", type="primary"):
                         data = response.json()
                         generated_output = data['results'][0]['generated_text'].strip()
                         
+                        # --- ENHANCED INSTRUCTION BLEED & LOOP CLEANER ---
+                        # 1. Chop off conversational meta-ramblings or model commentary if they appear
+                        for marker in ["Is there anything else", "Please let me know if there's anything else", "The final answer is", "(Note:"]:
+                            if marker in generated_output:
+                                generated_output = generated_output.split(marker)[0].strip()
+                        
+                        # 2. FIX FOR GENERATION LOOPS: If the model restarts a duplicate analysis sequence block, isolate the first one
+                        if generated_output.count("🔍 SENTINEL INTENT DETECTION") > 1:
+                            parts = generated_output.split("🔍 SENTINEL INTENT DETECTION")
+                            # Keep only the content generated within the first block boundaries
+                            generated_output = "🔍 SENTINEL INTENT DETECTION" + parts[1].strip()
+                        # --------------------------------------------------
+                        
                         st.success("Analysis Complete!")
                         st.write("### Orchestrator Response Output")
                         
-                        # CRITICAL FALLBACK CHECK: If Watsonx returns nothing, intercept and print safe status!
+                        # CRITICAL FALLBACK CHECK: If Watsonx returns empty metrics, intercept and print safe status!
                         if not generated_output or len(generated_output) < 5:
                             st.markdown("### ✅ SENTINEL INTENT DETECTION")
                             st.markdown("**Detected Intent:** Valid Transaction / Legitimate Notification")
