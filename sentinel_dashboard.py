@@ -9,9 +9,10 @@ load_dotenv()
 # 2. Your platform destination remains the same
 API_URL = "https://us-south.ml.cloud.ibm.com/ml/v1/deployments/019f46b6-6bbc-729f-8872-5f023b9d14a2/text/generation?version=2021-05-01"
 
-#2.a. Securely pull the key string out of memory
+# 2.a. Securely pull the key string out of memory
 # This keeps the main code file completely clean of private text strings!
 IBM_API_KEY = os.getenv("IBM_API_KEY")
+
 # -------------------------------------------------------------
 # 2. STREAMLIT APPLICATION FRONTEND DESIGN
 # -------------------------------------------------------------
@@ -33,8 +34,8 @@ user_input = st.text_area(
 if st.button("Run Security Orchestration Analysis", type="primary"):
     if not user_input.strip():
         st.warning("Please enter a valid query string before triggering analysis.")
-    elif IBM_API_KEY == "YOUR_IBM_CLOUD_API_KEY":
-        st.error("Configuration Error: Please paste your real IBM Cloud API Key into the script lines.")
+    elif IBM_API_KEY == "YOUR_IBM_CLOUD_API_KEY" or IBM_API_KEY is None:
+        st.error("Configuration Error: Please make sure your .env file is set up with your real IBM Cloud API Key.")
     else:
         with st.spinner("Authenticating with IBM Cloud IAM and parsing threat maps..."):
             try:
@@ -48,10 +49,10 @@ if st.button("Run Security Orchestration Analysis", type="primary"):
                 if token_res.status_code == 200:
                     iam_token = token_res.json().get("access_token")
                     
-                    # Part B: Stable, simplified payload parameters
+                    # Part B: Stable, simplified payload parameters (Increased token pool)
                     payload = {
                         "parameters": {
-                            "max_new_tokens": 300,
+                            "max_new_tokens": 1000,  # <-- FIXED: Bumped up from 300 to prevent cut-offs!
                             "decoding_method": "greedy",
                             "prompt_variables": {
                                 "user_query": user_input
