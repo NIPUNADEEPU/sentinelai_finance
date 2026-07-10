@@ -1,12 +1,17 @@
+import os
 import streamlit as st
 import requests
+from dotenv import load_dotenv
 
-# -------------------------------------------------------------
-# 1. PLATFORM CONFIGURATION CONSTANTS
-# -------------------------------------------------------------
+# 1. This looks for your local .env file and loads its values into memory
+load_dotenv()
+
+# 2. Your platform destination remains the same
 API_URL = "https://us-south.ml.cloud.ibm.com/ml/v1/deployments/019f46b6-6bbc-729f-8872-5f023b9d14a2/text/generation?version=2021-05-01"
-IBM_API_KEY = "mzVkAPDhGPAFD_jVKa2kokKYM2nPvcrQbH6BNbojDS5a"
 
+#2.a. Securely pull the key string out of memory
+# This keeps the main code file completely clean of private text strings!
+IBM_API_KEY = os.getenv("IBM_API_KEY")
 # -------------------------------------------------------------
 # 2. STREAMLIT APPLICATION FRONTEND DESIGN
 # -------------------------------------------------------------
